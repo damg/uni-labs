@@ -1,0 +1,9 @@
+*~
+*.o
+*.so.*
+*.a
+*.exe
+*.dll
+*.pyc
+*.pyo
+*.class
