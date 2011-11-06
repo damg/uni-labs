@@ -6,7 +6,6 @@
 #include <string.h>
 
 int calling_state;
-int comment_deepness = 0;
 int accu = 0;
 
 typedef enum E_OP { E_OP_ADD='+', E_OP_SUB='-', E_OP_MUL='*' } E_OP;
@@ -28,6 +27,19 @@ ws     [ \t\r\n]
 %s AFTER_INT
 
 %%
+
+<INITIAL,AFTER_INT,OP_TAIL>{
+{ws}				{ }
+"//".*$				{ }
+}
+
+<INITIAL,AFTER_INT>{
+{eq}				{ printf("%d\n", accu); accu = 0; BEGIN(INITIAL); }
+}
+
+<INITIAL,MLCOMMENT,AFTER_INT,OP_TAIL>{
+"\n"				{ }
+}
 
 <INITIAL>{
 "/*"				{ calling_state=INITIAL; BEGIN(MLCOMMENT); }
@@ -54,25 +66,9 @@ ws     [ \t\r\n]
 }
 
 <MLCOMMENT>{
-"/*"				{ comment_deepness++; }
-"*/"				{ comment_deepness--;
-				  if (!comment_deepness)
-				    BEGIN(calling_state);
-				}
+"/*"				{ }
+"*/"				{ BEGIN(calling_state); }
 .				{ }
-}
-
-<INITIAL,AFTER_INT>{
-{eq}				{ printf("%d\n", accu); accu = 0; BEGIN(INITIAL); }
-}
-
-<INITIAL,AFTER_INT,OP_TAIL>{
-{ws}				{ }
-"//".*$				{ }
-}
-
-<INITIAL,MLCOMMENT,AFTER_INT,OP_TAIL>{
-\n				{ }
 }
 
 %%
