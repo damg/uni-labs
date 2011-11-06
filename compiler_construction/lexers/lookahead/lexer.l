@@ -1,6 +1,8 @@
+/* -*- mode: text -*- */
 %option noyywrap
 
 %{
+
 #include <stdio.h>
 #include <string.h>
 
@@ -10,8 +12,6 @@ unsigned int counts[26*2][26*2];
 void handle_digram(char c1, char c2);
 
 %}
-
-%s INTERMEDIATE
 
 letter [A-Za-z]
 ws [ \t\r\n]
@@ -25,6 +25,7 @@ ws [ \t\r\n]
 
 {letter}		{ if (prev_char)
 			    handle_digram(prev_char, yytext[0]);
+                          prev_char = 0;
 			}
 
 .			{ prev_char = 0; }
