@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-char prev_char = 0;
 unsigned int counts[26*2][26*2];
 
 void handle_digram(char c1, char c2);
@@ -17,18 +16,12 @@ ws [ \t\r\n]
 
 %%
 
-{letter}{letter}	{ if (prev_char)
-			    handle_digram(prev_char, yytext[0]);
-			  prev_char = yytext[0];
+{letter}{letter}	{ handle_digram(yytext[0], yytext[1]);
 			  yyless(1);
 			}
 
-{letter}		{ if (prev_char)
-			    handle_digram(prev_char, yytext[0]);
-			  prev_char = 0;
-			}
-
-.			{ prev_char = 0; }
+.			{ }
+\n			{ }
 
 %%
 
