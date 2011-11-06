@@ -6,7 +6,7 @@
 #include <string.h>
 
 int calling_state;
-int accu = 0;
+double accu = 0;
 
 typedef enum E_OP { E_OP_ADD='+', E_OP_SUB='-', E_OP_MUL='*' } E_OP;
 
@@ -14,47 +14,48 @@ E_OP op;
 
 %}
 
-digit  [0-9]
-num    {digit}+
-int    [+-]?{num}
-sigint [+-]{num}
+dig    [0-9]
+exp    [Ee][+-]?{dig}+
+uflt   ({dig}+{exp})|({dig}*"."{dig}+{exp}?)|({dig}+"."{dig}*{exp}?)|({dig}+)
+flt    [+-]?{uflt}
+sigflt [+-]{uflt}+
 op     [+*-]
 eq     =
 ws     [ \t\r\n]
 
 %s MLCOMMENT
 %s OP_TAIL
-%s AFTER_INT
+%s AFTER_FLT
 
 %%
 
-<INITIAL,AFTER_INT,OP_TAIL>{
+<INITIAL,AFTER_FLT,OP_TAIL>{
 {ws}				{ }
 "//".*$				{ }
 }
 
-<INITIAL,AFTER_INT>{
-{eq}				{ printf("%d\n", accu); accu = 0; BEGIN(INITIAL); }
+<INITIAL,AFTER_FLT>{
+{eq}				{ printf("%f\n", accu); accu = 0; BEGIN(INITIAL); }
 }
 
-<INITIAL,MLCOMMENT,AFTER_INT,OP_TAIL>{
+<INITIAL,MLCOMMENT,AFTER_FLT,OP_TAIL>{
 "\n"				{ }
 }
 
 <INITIAL>{
 "/*"				{ calling_state=INITIAL; BEGIN(MLCOMMENT); }
-{int}				{ accu += atoi(yytext); BEGIN(AFTER_INT); }
+{flt}				{ accu += atof(yytext); BEGIN(AFTER_FLT); }
 }
 
-<AFTER_INT>{
-"/*"				{ calling_state=AFTER_INT; BEGIN(MLCOMMENT); }
-{sigint}			{ accu += atoi(yytext); }
+<AFTER_FLT>{
+"/*"				{ calling_state=AFTER_FLT; BEGIN(MLCOMMENT); }
+{sigflt}			{ accu += atof(yytext); }
 {op}				{ op = yytext[0]; BEGIN(OP_TAIL); }
 }
 
 <OP_TAIL>{
 "/*"				{ calling_state=OP_TAIL; BEGIN(MLCOMMENT); }
-{int}				{ handle_op_tail(); BEGIN(AFTER_INT); }
+{flt}				{ handle_op_tail(); BEGIN(AFTER_FLT); }
 .				{ fprintf(stderr, "<^Melchior^> MY NAMES BUSH!... "
 				  		  "HELP MY FIND IRAQ'S NUCLEAR WEAPONS, "
 						  "ORDER YOUR VERY OWN \"FIND MR. SADDAMS WEAPONS "
@@ -83,7 +84,7 @@ int main(int argc, char **argv)
 
 void handle_op_tail(void)
 {
-	int num = atoi(yytext);
+	double num = atof(yytext);
 	switch(op)
 	{
 	    case E_OP_ADD:
