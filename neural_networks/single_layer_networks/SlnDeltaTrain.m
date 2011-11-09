@@ -16,27 +16,24 @@
 %% along with Octave; see the file COPYING.  If not, see
 %% <http://www.gnu.org/licenses/>.
 
-%% SlnMain
+%% SlnDeltaTrain
 
 %% Author: Dmitri Bachtin <dima2001@MS-7673>
-%% Created: 2011-11-01
 
-function [ ret ] = SlnMain ()
-  randn('state', 17);
-
-  x = SlnGenerateTrainDataForAnd();
-  trainingDataIn = x.dataIn
-  trainingDataOut = x.dataOut
-
-  net1 = SlnInit(2, 1, @SlnActFnLinear)
-  net2 = SlnCopy(net1);
-  net2.actFn = @SlnActFnThreshold;
-
-  nety1 = SlnApplyMany(net1, trainingDataIn)
-  nety2 = SlnApplyMany(net2, trainingDataIn)
-
-  errorRate1 = SlnErrorRate(nety1, trainingDataOut)
-  errorRate2 = SlnErrorRate(nety2, trainingDataOut)
-  
-  ret = 'BYE';
+function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
+    currentErrorRate = maxErrorRate;
+    currentIteration = 0;
+    
+    while (currentIteration < maxIter)
+        nety = SlnApplyMany(sln, X);
+        errorRate = SlnErrorRate(nety, T);
+        
+        % break on epic success
+        if errorRate < maxErrorRate
+            break
+        end
+        
+        dW = eta * (T - nety) * X;
+        currentIteration = currentIteration + 1;
+    end
 end
