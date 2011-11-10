@@ -12,6 +12,8 @@ typedef enum E_OP { E_OP_ADD='+', E_OP_SUB='-', E_OP_MUL='*' } E_OP;
 
 E_OP op;
 
+void handle_op_tail(void);
+
 %}
 
 dig    [0-9]
@@ -56,11 +58,7 @@ ws     [ \t\r\n]
 <OP_TAIL>{
 "/*"				{ calling_state=OP_TAIL; BEGIN(MLCOMMENT); }
 {flt}				{ handle_op_tail(); BEGIN(AFTER_FLT); }
-.				{ fprintf(stderr, "<^Melchior^> MY NAMES BUSH!... "
-				  		  "HELP MY FIND IRAQ'S NUCLEAR WEAPONS, "
-						  "ORDER YOUR VERY OWN \"FIND MR. SADDAMS WEAPONS "
-						  "OF MASS DESTRUCTION DETECTION KIT\", Kit Includes: "
-						  "Darts and a Map\n");
+.				{ fprintf(stderr, "Unexpected character %c. Restarting.\n", yytext[0]);
 				  accu=0;
 				  BEGIN(INITIAL);
 				}
