@@ -16,6 +16,8 @@ $(TARGET): $(TARGET).yy.o
 %.yy.c: %.l
 	$(LEX) -o $@ $<
 
+%.l: ../common.inc.c
+
 clean:
 	$(RM) -fv *.o *.yy.c *~ $(TARGET)
 

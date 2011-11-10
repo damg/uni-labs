@@ -1,4 +1,4 @@
-SUBDIRS=lookahead yyless
+SUBDIRS=lookahead yyless reject
 
 all:
 	set -e; for e in $(SUBDIRS); do $(MAKE) -C $$e; done
