@@ -16,16 +16,14 @@
 %% along with Octave; see the file COPYING.  If not, see
 %% <http://www.gnu.org/licenses/>.
 
-%% SlnApply
+%% SlnGenerateTrainDataForAnd
 
 %% Author: Dmitri Bachtin <dima2001@MS-7673>
-%% Created: 2011-11-01
 
-function [ ret ] = SlnApply (net, xs)
-  [h, w] = size(xs);
-  if h ==  net.dIn
-    xs = xs';
-  end
-  y = net.W1*xs' + net.b1;
-  ret = net.actFn(y);
+function [ ret ] = SlnGenerateTrainDataForAnd()
+  trainingDataIn = [0 0; 0 1; 1 0; 1 1]';
+  trainingDataOut = [ 0 0 0 1 ];
+  
+  ret.dataIn = trainingDataIn;
+  ret.dataOut = trainingDataOut;
 end

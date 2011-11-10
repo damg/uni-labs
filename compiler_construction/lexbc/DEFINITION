@@ -1,0 +1,15 @@
+Definition des Verhaltens von Lexbc:
+====================================
+
+lexbc ist ein einfacher Rechner, der folgende Operationen unterstützt:
+Addition, Substraktion und Multiplikation. Lexbc berechnet strikt von
+links nach rechts, d.h. Multiplikation hat keine Priorität.
+
+Lexbc arbeitet infix: einer Zahl folgt eine Operation, der wieder eine
+Zahl folgt. Durch die Eingabe von = wird das Gesamtergebnis ausgegeben
+und verworfen. Die Eingabe von = darf nur einer Zahl folgen und
+niemals einem Operator.
+
+Kommentare dürfen an jeder Stelle kommen, solange sie eine Zahl nicht
+von ihrem Vorzeichen trennt. Gleiches gilt für Leerzeichen.
+
