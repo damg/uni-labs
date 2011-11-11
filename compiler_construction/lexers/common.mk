@@ -1,4 +1,4 @@
-CC=gcc
+B1;2305;0cCC=gcc
 CFLAGS=-Wall
 LDFLAGS=
 LEX=flex
@@ -14,7 +14,7 @@ $(TARGET): $(TARGET).yy.o
 	$(CC) $(CFLAGS) -c $<
 
 %.yy.c: %.l
-	$(LEX) -o $@ $<
+	$(LEX) -t $< > $@
 
 %.l: ../common.inc.c
 

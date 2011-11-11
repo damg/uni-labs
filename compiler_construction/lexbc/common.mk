@@ -14,7 +14,7 @@ $(TARGET): $(TARGET).yy.o
 	$(CC) $(CFLAGS) -c $<
 
 %.yy.c: %.l
-	$(LEX) -o $@ $<
+	$(LEX) -t $< > $@
 
 clean:
 	$(RM) -fv *.o *.yy.c *~ $(TARGET)
