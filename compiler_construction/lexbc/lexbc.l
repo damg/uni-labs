@@ -25,9 +25,9 @@ op     [+*-]
 eq     =
 ws     [ \t\r\n]
 
-%s MLCOMMENT
-%s OP_TAIL
-%s AFTER_FLT
+%x MLCOMMENT
+%x OP_TAIL
+%x AFTER_FLT
 
 %%
 
@@ -53,6 +53,10 @@ ws     [ \t\r\n]
 "/*"				{ calling_state=AFTER_FLT; BEGIN(MLCOMMENT); }
 {sigflt}			{ accu += atof(yytext); }
 {op}				{ op = yytext[0]; BEGIN(OP_TAIL); }
+.				{ fprintf(stderr, "Unexpected character %c. Restarting.\n", yytext[0]);
+				  accu=0;
+				  BEGIN(INITIAL);
+				}
 }
 
 <OP_TAIL>{
