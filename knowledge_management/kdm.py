@@ -14,6 +14,14 @@ class KdmStore:
             col = [ row[attr_ix] for row in self.rows ]
             return col
 
+    def __delitem__(self, ix):
+        if isinstance(ix, int):
+            del self.rows[ix]
+        elif isinstance(ix, str):
+            attr_ix = self.attrs.index(ix)
+            for e in self.rows:
+                del e[attr_ix]
+
     def __setitem__(self, ix, row):
         if len(row) != len(self.attrs):
             raise ValueError("Row has width %d, must be %d" % (len(row), len(self.attrs)))
@@ -95,8 +103,6 @@ def pprint_probability_table(d):
             print ("\t= %s then" % val)
             for kl in d[attr][val]:
                 print "\t\t%s : %d" % (kl, d[attr][val][kl])
-        
-            
 
 if __name__ == "__main__":
     store = KdmStore("textilien", "geschenkartikel", "durchschnittspreis", "klasse")
