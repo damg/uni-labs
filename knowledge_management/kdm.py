@@ -133,6 +133,7 @@ def id3(store, klass_attr):
                 iter_store_.rows = filter(lambda row: row[0] == val, iter_store_.rows)
                 ### TODO: add data to calculate gains properly
                 ### s_v, s
+
                 d[val_attr].append((val, calc_entropy(iter_store_, klass_attr)))
 
         print "Tiefe: %d, Entropien: %s" % (depth, d)
