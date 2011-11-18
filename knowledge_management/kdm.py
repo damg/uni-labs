@@ -1,3 +1,5 @@
+from math import *
+
 class KdmStore:
     def __init__(self, *attrs):
         self.attrs = attrs
@@ -103,6 +105,12 @@ def pprint_probability_table(d):
             print ("\t= %s then" % val)
             for kl in d[attr][val]:
                 print "\t\t%s : %d" % (kl, d[attr][val][kl])
+
+def calc_entropy(store, klass_attr):
+    col = store[klass_attr]
+    counts = map(float(col.count(k)) for k in set(col))
+    col_len = float(len(col))
+    return -1.0 * sum([k / col_len * log(k / col_len, 2)])
 
 if __name__ == "__main__":
     store = KdmStore("textilien", "geschenkartikel", "durchschnittspreis", "klasse")
