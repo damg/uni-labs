@@ -1,5 +1,7 @@
 from math import *
 
+import copy
+
 class KdmStore:
     def __init__(self, *attrs):
         self.attrs = attrs
@@ -35,7 +37,6 @@ class KdmStore:
         return (911*hash(self.attrs)) ^ (913*hash(self.rows))
 
     def copy(self):
-        import copy
         attrs=copy.copy(self.attrs)
         rows=copy.deepcopy(self.rows)
         result = KdmStore(*attrs)
@@ -108,9 +109,37 @@ def pprint_probability_table(d):
 
 def calc_entropy(store, klass_attr):
     col = store[klass_attr]
-    counts = map(float(col.count(k)) for k in set(col))
+    counts = [float(col.count(k)) for k in set(col)]
     col_len = float(len(col))
-    return -1.0 * sum([k / col_len * log(k / col_len, 2)])
+    return -1.0 * sum([k / col_len * log(k / col_len, 2) for k in counts])
+
+def id3(store, klass_attr):
+    root_entropy = calc_entropy(store, klass_attr)
+    print "Root entropy = %f" % root_entropy
+    def id3_rec(store, root_entropy, depth):
+        attrs = filter(lambda x: x != klass_attr, store.attrs)
+        iter_store_attrs = [ (attr, klass_attr) for attr in attrs ]
+        iter_stores = [ apply(KdmStore, iter_attrs) for iter_attrs in iter_store_attrs ]
+        iter_store_rows = [ zip(copy.deepcopy(store[attr]), copy.deepcopy(store[klass_attr])) for attr in attrs ]
+        for e in zip(iter_stores, iter_store_rows):
+            e[0].rows = e[1]
+        
+        d = {}
+        for iter_store in iter_stores:
+            val_attr = iter_store.attrs[0]
+            d[val_attr] = []
+            for val in set(iter_store[val_attr]):
+                iter_store_ = iter_store.copy()
+                iter_store_.rows = filter(lambda row: row[0] == val, iter_store_.rows)
+                ### TODO: add data to calculate gains properly
+                ### s_v, s
+                d[val_attr].append((val, calc_entropy(iter_store_, klass_attr)))
+
+        print "Tiefe: %d, Entropien: %s" % (depth, d)
+
+        gains = [ ( attr, root_entropy - sum(map(lambda e: 
+            
+    id3_rec(store, root_entropy, 0)
 
 if __name__ == "__main__":
     store = KdmStore("textilien", "geschenkartikel", "durchschnittspreis", "klasse")
@@ -135,4 +164,4 @@ if __name__ == "__main__":
           ["wenig","viel","hoch","TG"],
           ["wenig","viel","mittel","G"]]
     store.rows = rows
-    print(one_r(store, "klasse"))
+    id3(store, "klasse")
