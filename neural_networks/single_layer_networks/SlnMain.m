@@ -22,21 +22,44 @@
 %% Created: 2011-11-01
 
 function [ ret ] = SlnMain ()
+  clc;
+  clear all;
   randn('state', 17);
 
   x = SlnGenerateTrainDataForAnd();
-  trainingDataIn = x.dataIn
-  trainingDataOut = x.dataOut
+  trainingDataIn = x.dataIn;
+  trainingDataOut = x.dataOut;
 
-  net1 = SlnInit(2, 1, @SlnActFnLinear)
+  net1 = SlnInit(2, 1, @SlnActFnLinear);
   net2 = SlnCopy(net1);
   net2.actFn = @SlnActFnThreshold;
 
-  nety1 = SlnApplyMany(net1, trainingDataIn)
-  nety2 = SlnApplyMany(net2, trainingDataIn)
+  %nety1 = SlnApplyMany(net1, trainingDataIn)
+  %nety2 = SlnApplyMany(net2, trainingDataIn)
 
-  errorRate1 = SlnErrorRate(nety1, trainingDataOut)
-  errorRate2 = SlnErrorRate(nety2, trainingDataOut)
+  %errorRate1 = SlnErrorRate(nety1, trainingDataOut)
+  %errorRate2 = SlnErrorRate(nety2, trainingDataOut)
   
+  eta = 0.2
+  %net1
+  %ret1 = SlnDeltaTrain(net1, trainingDataIn, trainingDataOut, eta, 1000, 0.05)
+  %SlnPlotTwoClasses(ret1.sln,trainingDataIn,trainingDataOut);
+  %ret1.sln
+  
+  net2
+  ret2 = SlnDeltaTrain(net2, trainingDataIn, trainingDataOut, eta, 10, 0.05)
+  SlnPlotTwoClasses(ret2.sln,trainingDataIn,trainingDataOut);
+  ret2.sln
+  
+  %%%%
+  
+  %% IRIS Data
+  
+  %netIris = SlnInit(4, 2, @SlnActFnThreshold);
+  %trainingData = csvread('iris.data');
+  %trainingDataIn = trainingData(:,1:4);
+  %trainingDataOut = trainingData(:, 5);
+  %ret3 = SlnDeltaTrain(netIris, trainingDataIn, trainingDataOut, eta, 100, 0.05);
+  %ret3.sln
   ret = 'BYE';
 end

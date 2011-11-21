@@ -21,19 +21,27 @@
 %% Author: Dmitri Bachtin <dima2001@MS-7673>
 
 function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
-    currentErrorRate = maxErrorRate;
+    currentErrorRate = inf;
     currentIteration = 0;
+    [Xheight, Xwidth] = size(X);
     
     while (currentIteration < maxIter)
         nety = SlnApplyMany(sln, X);
-        errorRate = SlnErrorRate(nety, T);
+        currentErrorRate = SlnErrorRate(nety, T);
         
         % break on epic success
-        if errorRate < maxErrorRate
+        if currentErrorRate < maxErrorRate
             break
         end
         
-        dW = eta * (T - nety) * X;
+        dW = eta * (T - nety) * X';
+        sln.W1 = sln.W1 + dW;
+        db = eta * (T - nety) * ones(Xwidth, 1); % 1 = Eingabe von Bias
+        sln.b1 = sln.b1 + db;
         currentIteration = currentIteration + 1;
     end
+    
+    ret.currentErrorRate = currentErrorRate;
+    ret.currentIteration = currentIteration;
+    ret.sln = sln;
 end
