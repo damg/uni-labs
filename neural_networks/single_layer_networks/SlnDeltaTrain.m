@@ -26,6 +26,10 @@ function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
     [Xheight, Xwidth] = size(X);
     
     while (currentIteration < maxIter)
+        if mod(currentIteration, 10) == 0 && currentIteration > 0
+            figure(currentIteration)
+            SlnPlotTwoClasses(sln, X, T)
+        end
         nety = SlnApplyMany(sln, X);
         currentErrorRate = SlnErrorRate(nety, T);
         
