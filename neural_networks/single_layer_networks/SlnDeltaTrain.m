@@ -16,16 +16,32 @@
 %% along with Octave; see the file COPYING.  If not, see
 %% <http://www.gnu.org/licenses/>.
 
-%% ActFnId
+%% SlnDeltaTrain
 
 %% Author: Dmitri Bachtin <dima2001@MS-7673>
-%% Created: 2011-11-01
 
-function [ ret ] = SlnInit (dIn, cOut, actFn)
-  ret.dIn = dIn;
-  ret.cOut = cOut;
-  ret.actFn = actFn;
-  
-  ret.W1 = randn(cOut, dIn) / sqrt(dIn+1);
-  ret.b1 = randn() / sqrt(dIn+1);
+function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
+    currentErrorRate = inf;
+    currentIteration = 0;
+    [Xheight, Xwidth] = size(X);
+    
+    while (currentIteration < maxIter)
+        nety = SlnApplyMany(sln, X);
+        currentErrorRate = SlnErrorRate(nety, T);
+        
+        % break on epic success
+        if currentErrorRate < maxErrorRate
+            break
+        end
+        
+        dW = eta * (T - nety) * X';
+        sln.W1 = sln.W1 + dW;
+        db = eta * (T - nety) * ones(Xwidth, 1); % 1 = Eingabe von Bias
+        sln.b1 = sln.b1 + db;
+        currentIteration = currentIteration + 1;
+    end
+    
+    ret.currentErrorRate = currentErrorRate;
+    ret.currentIteration = currentIteration;
+    ret.sln = sln;
 end

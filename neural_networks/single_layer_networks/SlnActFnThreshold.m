@@ -22,9 +22,10 @@
 %% Created: 2011-11-01
 
 function [ ret ] = SlnActFnThreshold (x)
-  if x < 0.0
-    ret = 0.0;
-  else
-    ret = 1.0;
-  end
+  %if x < 0.0
+  %  ret = 0.0
+  %else
+  %  ret = 1.0
+  %end
+  ret = x >= 0.0;
 end
