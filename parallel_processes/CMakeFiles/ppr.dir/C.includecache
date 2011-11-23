@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/d.bachtin/src/uni-labs/parallel_processes/ppr.c
+stdlib.h
+-
+stdio.h
+-
+time.h
+-
+unistd.h
+-
+semaphore.h
+-
+
