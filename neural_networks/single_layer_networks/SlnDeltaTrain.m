@@ -40,7 +40,7 @@ function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
         
         dW = eta * (T - nety) * X';
         sln.W1 = sln.W1 + dW;
-        db = eta * (T - nety) * ones(Xwidth, 1); % 1 = Eingabe von Bias
+        db = eta * (T - nety) * ones(Xwidth, 1) % 1 = Eingabe von Bias
         sln.b1 = sln.b1 + db;
         currentIteration = currentIteration + 1;
     end

@@ -22,10 +22,12 @@
 %% Created: 2011-11-01
 
 function [ ret ] = SlnApply (net, xs)
-  [h, w] = size(xs);
-  if h ==  net.dIn
+  [h, w] = size(xs)
+  if h == net.dIn
     xs = xs';
   end
-  y = net.W1*xs' + net.b1;
+  y = net.W1*xs';
+  b = repmat(net.b1, 1, w);
+  y = y + b;
   ret = net.actFn(y);
 end

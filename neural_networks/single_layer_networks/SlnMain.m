@@ -34,14 +34,17 @@ function [ ret ] = SlnMain ()
   net2 = SlnCopy(net1);
   net2.actFn = @SlnActFnThreshold;
 
+  eta = 0.2
+  errorRate = 0.05
+
+%% Uebung 2
+  
   %nety1 = SlnApplyMany(net1, trainingDataIn)
   %nety2 = SlnApplyMany(net2, trainingDataIn)
 
   %errorRate1 = SlnErrorRate(nety1, trainingDataOut)
   %errorRate2 = SlnErrorRate(nety2, trainingDataOut)
   
-  eta = 0.2
-  errorRate = 0.05
   %net1
   %ret1 = SlnDeltaTrain(net1, trainingDataIn, trainingDataOut, eta, 1000, errorRate)
   %SlnPlotTwoClasses(ret1.sln,trainingDataIn,trainingDataOut);
@@ -52,7 +55,7 @@ function [ ret ] = SlnMain ()
   %SlnPlotTwoClasses(ret2.sln,trainingDataIn,trainingDataOut);
   %ret2.sln
   
-  %%%%
+%% Uebung 3
   
   %% IRIS Data
   
@@ -74,27 +77,38 @@ function [ ret ] = SlnMain ()
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-   netIris = SlnInit(2, 1, @SlnActFnThreshold);
-   netIris.b1 = 1;
-   netIris
-   trainingData = csvread('iris12.data');
-   
-   trainingDataIn = trainingData(:,3:4)'
-   trainingDataOut = trainingData(:, 5)';
-   trainingDataOut = trainingDataOut - 1
-   
-   SlnApplyMany(netIris, trainingDataIn)
-   
-   ret4 = SlnDeltaTrain(netIris, trainingDataIn, trainingDataOut, eta, 1000, errorRate)
-   SlnPlotTwoClasses(ret4.sln, trainingDataIn, trainingDataOut);
-   ret4.sln
-   
-   validationData = csvread('validation12.data');
-   validationDataIn = validationData(:,3:4)';
-   validationDataOut = validationData(:, 5)';
-   validationDataOut = validationDataOut - 1
-   
-   SlnApplyMany(ret4.sln, validationDataIn)
+%    netIris = SlnInit(2, 1, @SlnActFnThreshold);
+%    netIris.b1 = 1;
+%    netIris
+%    trainingData = csvread('iris12.data');
+%    
+%    trainingDataIn = trainingData(:,3:4)'
+%    trainingDataOut = trainingData(:, 5)';
+%    trainingDataOut = trainingDataOut - 1
+%    
+%    SlnApplyMany(netIris, trainingDataIn)
+%    
+%    ret4 = SlnDeltaTrain(netIris, trainingDataIn, trainingDataOut, eta, 1000, errorRate)
+%    SlnPlotTwoClasses(ret4.sln, trainingDataIn, trainingDataOut);
+%    ret4.sln
+%    
+%    validationData = csvread('validation12.data');
+%    validationDataIn = validationData(:,3:4)';
+%    validationDataOut = validationData(:, 5)';
+%    validationDataOut = validationDataOut - 1
+%    
+%    SlnApplyMany(ret4.sln, validationDataIn)
   
+%% Uebung 4
+
+trainingData = csvread('iris.data.orig');
+trainingDataIn = trainingData(:, 1:4);
+trainingDataOut = trainingData(:, 5) + 1; %% a.1)
+
+netIris = SlnInit(4, 3, @SlnActFnLinear)
+trainingDataOut2 = ConvertResultCoding(netIris, trainingDataOut); %% a.1)
+
+SlnDeltaTrain(netIris, trainingDataIn', trainingDataOut2, eta, 100, errorRate)
+
   ret = 'BYE';
 end
