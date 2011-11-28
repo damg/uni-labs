@@ -12,3 +12,6 @@ CMakeCache.txt
 CMakeFiles
 cmake_install.cmake
 parallel_processes/Makefile
+parallel_processes/ppr_mq
+parallel_processes/ppr_pipe
+parallel_processes/ppr_shmem
