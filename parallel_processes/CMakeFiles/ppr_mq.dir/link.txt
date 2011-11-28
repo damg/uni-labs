@@ -1,1 +1,0 @@
-/usr/bin/gcc     CMakeFiles/ppr_mq.dir/ppr_mq.c.o  -o ppr_mq -rdynamic 

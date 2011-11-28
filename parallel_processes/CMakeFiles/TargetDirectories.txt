@@ -1,3 +1,0 @@
-/home/d.bachtin/src/uni-labs/parallel_processes/CMakeFiles/ppr_mq.dir
-/home/d.bachtin/src/uni-labs/parallel_processes/CMakeFiles/ppr_pipe.dir
-/home/d.bachtin/src/uni-labs/parallel_processes/CMakeFiles/ppr_shmem.dir

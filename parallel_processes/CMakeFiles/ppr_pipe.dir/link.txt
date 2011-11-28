@@ -1,1 +1,0 @@
-/usr/bin/gcc     CMakeFiles/ppr_pipe.dir/ppr_pipe.c.o  -o ppr_pipe -rdynamic 

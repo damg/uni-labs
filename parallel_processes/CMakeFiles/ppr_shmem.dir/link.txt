@@ -1,1 +1,0 @@
-/usr/bin/gcc     CMakeFiles/ppr_shmem.dir/ppr_shmem.c.o  -o ppr_shmem -rdynamic 
