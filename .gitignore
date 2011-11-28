@@ -8,3 +8,7 @@
 *.pyo
 *.class
 *.yy.c
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+parallel_processes/Makefile
