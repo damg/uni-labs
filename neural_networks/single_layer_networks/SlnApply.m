@@ -23,11 +23,12 @@
 
 function [ ret ] = SlnApply (net, xs)
   [h, w] = size(xs)
+  
   if h == net.dIn
     xs = xs';
   end
   y = net.W1*xs';
-  b = repmat(net.b1, 1, w);
-  y = y + b;
+    net.b1
+  y = y + net.b1;
   ret = net.actFn(y);
 end

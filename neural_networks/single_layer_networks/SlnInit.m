@@ -27,5 +27,5 @@ function [ ret ] = SlnInit (dIn, cOut, actFn)
   ret.actFn = actFn;
   
   ret.W1 = randn(cOut, dIn) / sqrt(dIn+1);
-  ret.b1 = ((1:cOut) * (randn() / sqrt(dIn+1)))';
+  ret.b1 = randn(cOut,1) / sqrt(dIn+1);
 end

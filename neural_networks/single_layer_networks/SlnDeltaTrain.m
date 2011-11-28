@@ -30,6 +30,7 @@ function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
             figure(currentIteration)
             SlnPlotTwoClasses(sln, X, T)
         end
+        
         nety = SlnApplyMany(sln, X);
         currentErrorRate = SlnErrorRate(nety, T);
         
