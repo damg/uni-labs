@@ -40,7 +40,7 @@ function [ ret ] = SlnMain ()
   %errorRate1 = SlnErrorRate(nety1, trainingDataOut)
   %errorRate2 = SlnErrorRate(nety2, trainingDataOut)
   
-  eta = 0.1
+  eta = 0.2
   errorRate = 0.05
   %net1
   %ret1 = SlnDeltaTrain(net1, trainingDataIn, trainingDataOut, eta, 1000, errorRate)
@@ -79,20 +79,22 @@ function [ ret ] = SlnMain ()
    netIris
    trainingData = csvread('iris12.data');
    
-   trainingDataIn = trainingData(:,1:2)'
-   trainingDataOut = trainingData(:, 5)'
+   trainingDataIn = trainingData(:,3:4)'
+   trainingDataOut = trainingData(:, 5)';
+   trainingDataOut = trainingDataOut - 1
    
    SlnApplyMany(netIris, trainingDataIn)
    
-%    ret4 = SlnDeltaTrain(netIris, trainingDataIn, trainingDataOut, eta, 100, errorRate)
-%    SlnPlotTwoClasses(ret4.sln, trainingDataIn, trainingDataOut);
-%    ret4.sln
-%    
-%    validationData = csvread('validation12.data');
-%    validationDataIn = validationData(:,1:2)';
-%    validationDataOut = validationData(:, 5)'
-%    
-%    SlnApplyMany(ret4.sln, validationDataIn)
+   ret4 = SlnDeltaTrain(netIris, trainingDataIn, trainingDataOut, eta, 1000, errorRate)
+   SlnPlotTwoClasses(ret4.sln, trainingDataIn, trainingDataOut);
+   ret4.sln
+   
+   validationData = csvread('validation12.data');
+   validationDataIn = validationData(:,3:4)';
+   validationDataOut = validationData(:, 5)';
+   validationDataOut = validationDataOut - 1
+   
+   SlnApplyMany(ret4.sln, validationDataIn)
   
   ret = 'BYE';
 end
