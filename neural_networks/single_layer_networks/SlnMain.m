@@ -34,8 +34,8 @@ function [ ret ] = SlnMain ()
   net2 = SlnCopy(net1);
   net2.actFn = @SlnActFnThreshold;
 
-  eta = 0.2
-  errorRate = 0.05
+  eta = 0.0001;
+  errorRate = 0.05;
 
 %% Uebung 2
   
@@ -102,13 +102,16 @@ function [ ret ] = SlnMain ()
 %% Uebung 4
 
 trainingData = csvread('iris.data.orig');
-trainingDataIn = trainingData(:, 1:4);
-trainingDataOut = trainingData(:, 5) + 1; %% a.1)
+trainingDataIn = trainingData(:, 3:4);
+trainingDataOut = trainingData(:, 5)' + 1; %% a.1)
 
-netIris = SlnInit(4, 3, @SlnActFnLinear)
+netIris = SlnInit(2, 3, @SlnActFnLinear)
+netIris.postProcessFn = @DscMax;
+
 trainingDataOut2 = ConvertResultCoding(netIris, trainingDataOut); %% a.1)
+ret = SlnDeltaTrain(netIris, trainingDataIn', trainingDataOut2, eta, 50000, errorRate)
+ret.sln.W1
+ret.sln.b1
 
-SlnDeltaTrain(netIris, trainingDataIn', trainingDataOut2, eta, 100, errorRate)
-
-  ret = 'BYE';
+ret = 'BYE';
 end

@@ -15,8 +15,8 @@ function SlnPlotThreeClasses(sln, X, T)
     xm = xm(:);
     ym = ym(:);
     grid = [xm ym]';
-    Z = SlnFwdLinear(sln, grid);
-    class=DscMax(Z);
+    Z = SlnApplyMany(sln, grid);
+    class= sln.postProcessFn(Z);
 
     colors = ['b.'; 'r.'; 'g.'];
     for i = 1:3
@@ -27,7 +27,7 @@ function SlnPlotThreeClasses(sln, X, T)
       set(h, 'MarkerSize', 8);
     end
 
-    T1=DscMax(T);
+    T1=sln.postProcessFn(T);
     plot(X(1, T1<=1), X(2, T1<=1),'bo');
     plot(X(1, T1==2), X(2, T1==2),'rx');
     plot(X(1, T1==3), X(2, T1==3),'g*');

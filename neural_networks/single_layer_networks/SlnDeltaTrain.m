@@ -24,15 +24,20 @@ function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
     currentErrorRate = inf;
     currentIteration = 0;
     [Xheight, Xwidth] = size(X);
+    [Theight, Twidth] = size(T);
     
     while (currentIteration < maxIter)
-        if mod(currentIteration, 10) == 0 && currentIteration > 0
-            figure(currentIteration)
-            SlnPlotTwoClasses(sln, X, T)
-        end
-        
+%         if mod(currentIteration, 10) == 0 && currentIteration > 0
+%             if sln.cOut == 1
+%                 figure(currentIteration);
+%                 SlnPlotTwoClasses(sln, X, T);
+%             elseif sln.cOut == 3
+%                 figure(currentIteration);
+%                 SlnPlotThreeClasses(sln, X, T);
+%             end
+%         end
         nety = SlnApplyMany(sln, X);
-        currentErrorRate = SlnErrorRate(nety, T);
+        currentErrorRate = SlnErrorRate(sln, nety, T);
         
         % break on epic success
         if currentErrorRate < maxErrorRate
@@ -40,8 +45,9 @@ function [ ret ] = SlnDeltaTrain (sln, X, T, eta, maxIter, maxErrorRate)
         end
         
         dW = eta * (T - nety) * X';
+        
         sln.W1 = sln.W1 + dW;
-        db = eta * (T - nety) * ones(Xwidth, 1) % 1 = Eingabe von Bias
+        db = eta * (T - nety) * ones(Xwidth, 1); % 1 = Eingabe von Bias
         sln.b1 = sln.b1 + db;
         currentIteration = currentIteration + 1;
     end

@@ -22,6 +22,9 @@
 %% Created: 2011-11-01
 
 function [ ret ] = SlnApplyMany (net, inputData)
+  ret = [];
   [h, w] = size(inputData);
-  ret = SlnApply(net, inputData(:, 1:w));
+  for i = 1:w
+    ret(:, i) = SlnApply(net, inputData(:, i));
+  end
 end

@@ -21,8 +21,11 @@
 %% Author: Dmitri Bachtin <dima2001@MS-7673>
 %% Created: 2011-11-01
 
-function [ ret ] = SlnErrorRate (netResults, validResults)
+function [ ret ] = SlnErrorRate (sln, netResults, validResults)
+  [h, w] = size(netResults);
+  netResults = sln.postProcessFn(netResults);
+  validResults = sln.postProcessFn(validResults);
+  
   hits = netResults == validResults;
-  [h, w] = size(hits);
   ret = (w - sum(hits)) / w; % w-sum(hits)=Anzahl von Fehlern
 end

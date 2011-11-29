@@ -25,6 +25,7 @@ function [ ret ] = SlnInit (dIn, cOut, actFn)
   ret.dIn = dIn;
   ret.cOut = cOut;
   ret.actFn = actFn;
+  ret.postProcessFn = @SlnId;
   
   ret.W1 = randn(cOut, dIn) / sqrt(dIn+1);
   ret.b1 = randn(cOut,1) / sqrt(dIn+1);
