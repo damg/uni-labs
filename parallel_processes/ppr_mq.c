@@ -9,15 +9,15 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-void atexit_handler(void);
+void main_sighandler(int);
 
 void start_conv(void);
 void start_log(void);
 void start_statistics(void);
 void start_report(void);
 
-void report_sighandler(int sig);
-void log_sighandler(int sig);
+void report_sighandler(int);
+void log_sighandler(int);
 
 static int pipe_conv_to_log;
 static int pipe_conv_to_statistics;
@@ -45,7 +45,7 @@ int
 main(int argc, char *argv[])
 {
   app_name = strdup(basename(argv[0]));
-  atexit(atexit_handler);
+  signal(SIGINT, main_sighandler);
 
   pid_t pid;
 
@@ -199,11 +199,14 @@ void report_sighandler(int sig)
   fclose(report_f);
 }
 
-void atexit_handler(void)
+void main_sighandler(int sig)
 {
   msgctl(pipe_conv_to_log, IPC_RMID, NULL);
   msgctl(pipe_conv_to_statistics, IPC_RMID, NULL);
   msgctl(pipe_statistics_to_report, IPC_RMID, NULL);
 
   free(app_name);
+
+  printf("BAI\n");
+  exit(0);
 }
