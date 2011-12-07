@@ -118,7 +118,7 @@ void start_report(void)
   char *report_file_path;
   static FILE *report_f;
 
-  int min_num, max_num, num;
+  int min_num, max_num;
   double mean_num;
   struct stat_msgbuf buf;
 

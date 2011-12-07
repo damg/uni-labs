@@ -51,29 +51,23 @@ main(int argc, char *argv[])
 
   srand(time(0));
 
-  pid = fork();
-
-  if (!pid)
-    {
-      start_log();
-    }
-  else
-    {
-      sem_init(shm_log_sem, 1, 0);
-      shm_log = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0600);
-    }
+  shm_log = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0600);
+  fprintf(stderr, "Created shmem for log: %d\n", shm_log);
+  sem_init(shm_log_sem, 1, 0);
 
   pid = fork();
   if (!pid)
-    {
-      start_statistics();
-    }
+    start_log();
+
+  shm_stat = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0600);
+  fprintf(stderr, "Created shmem for stat: %d\n", shm_stat);
+  sem_init(shm_stat_sem, 1, 0);
+  pid = fork();
+  if (!pid)
+    start_statistics();
   else
-    {
-      sem_init(shm_stat_sem, 1, 0);
-      shm_stat = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0600);
-      start_conv();
-    }
+    start_conv();
+
   return EXIT_SUCCESS;
 }
 
@@ -90,8 +84,6 @@ void start_conv(void)
       shmptr = shmat(shm_log, 0, 0);
       *shmptr = num;
       sem_post(shm_log_sem);
-
-      printf("%d\n", num);
 
       shmptr = shmat(shm_stat, 0, 0);
       *shmptr = num;
@@ -121,7 +113,6 @@ void start_log(void)
     {
       sem_wait(shm_log_sem);
       shmptr = shmat(shm_log, 0, 0);
-      perror("HAI");
       num = *shmptr;
       fprintf(log_f, "[%ld] %d\n", time(0), num);
       fflush(log_f);
@@ -135,7 +126,7 @@ void start_report(void)
   static FILE *report_f;
   struct report_msgbuf_s *shmptr;
 
-  int min_num, max_num, num;
+  int min_num, max_num;
   double mean_num;
 
   report_file_path_len = strlen(app_name) + 9 + 1;
@@ -178,16 +169,12 @@ void start_statistics(void)
   sum = 0;
   mean_num = 0.0;
 
+  shm_rep = shmget(IPC_PRIVATE, sizeof(struct report_msgbuf_s), IPC_CREAT | 0600);
+  fprintf(stderr, "Created shmem for rep: %d\n", shm_rep);
+  sem_init(shm_rep_sem, 1, 0);
   pid = fork();
   if (!pid)
-    {
       start_report();
-    }
-  else
-    {
-        sem_init(shm_rep_sem, 1, 0);
-	shm_rep = shmget(IPC_PRIVATE, sizeof(struct report_msgbuf_s), IPC_CREAT | 0600);
-    }
 
   while(1)
     {
