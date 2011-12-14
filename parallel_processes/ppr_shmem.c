@@ -37,6 +37,12 @@ struct report_msgbuf_s
 
 static char *app_name;
 
+#define P(sem_name) \
+  sem_wait((sem_name))
+
+#define V(sem_name) \
+  sem_post((sem_name))
+
 int
 main(int argc, char *argv[])
 {
@@ -83,11 +89,11 @@ void start_conv(void)
 
       shmptr = shmat(shm_log, 0, 0);
       *shmptr = num;
-      sem_post(shm_log_sem);
+      V(shm_log_sem);
 
       shmptr = shmat(shm_stat, 0, 0);
       *shmptr = num;
-      sem_post(shm_stat_sem);
+      V(shm_stat_sem);
     }
 }
 
@@ -111,7 +117,7 @@ void start_log(void)
 
   while(1)
     {
-      sem_wait(shm_log_sem);
+      P(shm_log_sem);
       shmptr = shmat(shm_log, 0, 0);
       num = *shmptr;
       fprintf(log_f, "[%ld] %d\n", time(0), num);
@@ -141,7 +147,7 @@ void start_report(void)
 
   while(1)
     {
-      sem_wait(shm_rep_sem);
+      P(shm_rep_sem);
       shmptr = shmat(shm_rep, 0, 0);
       min_num = shmptr->min_num;
       max_num = shmptr->max_num;
@@ -178,7 +184,7 @@ void start_statistics(void)
 
   while(1)
     {
-      sem_wait(shm_stat_sem);
+      P(shm_stat_sem);
       shmiptr = shmat(shm_stat, 0, 0);
       num = *shmiptr;
 
@@ -196,7 +202,7 @@ void start_statistics(void)
 
       shmptr = shmat(shm_rep, 0, 0);
       *shmptr = buf;
-      sem_post(shm_rep_sem);
+      V(shm_rep_sem);
     }
 }
 
