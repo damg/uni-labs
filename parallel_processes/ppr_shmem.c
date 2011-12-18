@@ -27,6 +27,8 @@
 #include <sys/shm.h>
 #include <sys/mman.h>
 
+#define BUF_SIZE 32
+
 void main_sighandler(int);
 
 void start_conv(void);
@@ -37,13 +39,26 @@ void start_report(void);
 void report_sighandler(int sig);
 void log_sighandler(int sig);
 
-static sem_t *shm_log_sem;
-static sem_t *shm_stat_sem;
-static sem_t *shm_rep_sem;
+static sem_t *shm_log_sem_rd;
+static sem_t *shm_stat_sem_rd;
+static sem_t *shm_rep_sem_rd;
+static sem_t *shm_log_sem_wr;
+static sem_t *shm_stat_sem_wr;
+static sem_t *shm_rep_sem_wr;
+static sem_t *shm_log_sem_ac;
+static sem_t *shm_stat_sem_ac;
+static sem_t *shm_rep_sem_ac;
 
 static int shm_log;
 static int shm_stat;
 static int shm_rep;
+
+static volatile size_t rdpos_log_buf = 0;
+static volatile size_t rdpos_stat_buf = 0;
+static volatile size_t rdpos_rep_buf = 0;
+static volatile size_t wrpos_log_buf = 0;
+static volatile size_t wrpos_stat_buf = 0;
+static volatile size_t wrpos_rep_buf = 0;
 
 struct report_msgbuf_s
 {
@@ -66,25 +81,42 @@ main(int argc, char *argv[])
   app_name = strdup(basename(argv[0]));
   signal(SIGINT, main_sighandler);
 
-  shm_log_sem = mmap(NULL, sizeof *shm_log_sem, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  shm_stat_sem = mmap(NULL, sizeof *shm_stat_sem, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  shm_rep_sem = mmap(NULL, sizeof *shm_rep_sem, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_log_sem_rd = mmap(NULL, sizeof *shm_log_sem_rd, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_log_sem_wr = mmap(NULL, sizeof *shm_log_sem_wr, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_log_sem_ac = mmap(NULL, sizeof *shm_log_sem_ac, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_stat_sem_rd = mmap(NULL, sizeof *shm_stat_sem_rd, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_stat_sem_wr = mmap(NULL, sizeof *shm_stat_sem_wr, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_stat_sem_ac = mmap(NULL, sizeof *shm_stat_sem_ac, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_rep_sem_rd = mmap(NULL, sizeof *shm_rep_sem_rd, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_rep_sem_wr = mmap(NULL, sizeof *shm_rep_sem_wr, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  shm_rep_sem_ac = mmap(NULL, sizeof *shm_rep_sem_ac, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
   pid_t pid;
 
   srand(time(0));
 
-  shm_log = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0600);
+  shm_log = shmget(IPC_PRIVATE, sizeof(int)*BUF_SIZE, IPC_CREAT | 0600);
   fprintf(stderr, "Created shmem for log: %d\n", shm_log);
-  sem_init(shm_log_sem, 1, 0);
+  sem_init(shm_log_sem_rd, 1, 0);
+  sem_init(shm_log_sem_wr, 1, BUF_SIZE);
+  sem_init(shm_log_sem_ac, 1, 1);
 
   pid = fork();
   if (!pid)
     start_log();
 
-  shm_stat = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0600);
+  shm_stat = shmget(IPC_PRIVATE, sizeof(int)*BUF_SIZE, IPC_CREAT | 0600);
   fprintf(stderr, "Created shmem for stat: %d\n", shm_stat);
-  sem_init(shm_stat_sem, 1, 0);
+  sem_init(shm_stat_sem_rd, 1, 0);
+  sem_init(shm_stat_sem_wr, 1, BUF_SIZE);
+  sem_init(shm_stat_sem_ac, 1, 1);
+
+  shm_rep = shmget(IPC_PRIVATE, sizeof(struct report_msgbuf_s)*BUF_SIZE, IPC_CREAT | 0600);
+  fprintf(stderr, "Created shmem for rep: %d\n", shm_rep);
+  sem_init(shm_rep_sem_rd, 1, 0);
+  sem_init(shm_rep_sem_wr, 1, BUF_SIZE);
+  sem_init(shm_rep_sem_ac, 1, 1);
+
   pid = fork();
   if (!pid)
     start_statistics();
@@ -96,7 +128,7 @@ main(int argc, char *argv[])
 
 void start_conv(void)
 {
-  int num;
+  int num, i;
   static int *conv_shmptr_log, *conv_shmptr_stat;
 
   conv_shmptr_log = shmat(shm_log, 0, 0);
@@ -106,11 +138,19 @@ void start_conv(void)
     {
       num = rand() % 256;
 
-      *conv_shmptr_log = num;
-      V(shm_log_sem);
+      P(shm_stat_sem_wr);
+      P(shm_stat_sem_ac);
+      conv_shmptr_stat[wrpos_log_buf] = num; //
+      wrpos_log_buf = (wrpos_log_buf + 1) % BUF_SIZE;
+      V(shm_stat_sem_ac);
+      V(shm_stat_sem_rd);
 
-      *conv_shmptr_stat = num;
-      V(shm_stat_sem);
+      P(shm_log_sem_wr);
+      P(shm_log_sem_ac);
+      conv_shmptr_log[wrpos_rep_buf] = num; //
+      wrpos_rep_buf = (wrpos_rep_buf + 1) % BUF_SIZE;
+      V(shm_log_sem_ac);
+      V(shm_log_sem_rd);
     }
 }
 
@@ -135,11 +175,16 @@ void start_log(void)
 
   while(1)
     {
-      P(shm_log_sem);
-      
-      num = *log_shmptr;
+      P(shm_log_sem_rd);
+      P(shm_log_sem_ac);
+
+      num = log_shmptr[rdpos_log_buf];
+      rdpos_log_buf = (rdpos_log_buf + 1) % BUF_SIZE;
       fprintf(log_f, "[%ld] %d\n", time(0), num);
       fflush(log_f);
+
+      V(shm_log_sem_ac);
+      V(shm_log_sem_wr);
     }
 }
 
@@ -162,18 +207,24 @@ void start_report(void)
   free(report_file_path);
 
   rep_shmptr = shmat(shm_rep, 0, 0);
+    
   signal(SIGINT, report_sighandler);
 
   while(1)
     {
-      P(shm_rep_sem);
+      P(shm_rep_sem_rd);
+      P(shm_rep_sem_ac);
       
-      min_num = rep_shmptr->min_num;
-      max_num = rep_shmptr->max_num;
-      mean_num = rep_shmptr->mean_num;
+      min_num = rep_shmptr[rdpos_rep_buf].min_num;
+      max_num = rep_shmptr[rdpos_rep_buf].max_num;
+      mean_num = rep_shmptr[rdpos_rep_buf].mean_num;
+      rdpos_rep_buf = (rdpos_rep_buf + 1) % BUF_SIZE;
 
       fprintf(report_f, "[%ld] %i %i %f\n", time(0), min_num, max_num, mean_num);
       fflush(report_f);
+
+      V(shm_rep_sem_ac);
+      V(shm_rep_sem_wr);
     }
 }
 
@@ -191,29 +242,33 @@ void start_statistics(void)
   double mean_num;
 
   count = 0;
-  min_num = max_num = 0;
+  min_num = 256;
+  max_num = -1;
   sum = 0;
   mean_num = 0.0;
 
-  shm_rep = shmget(IPC_PRIVATE, sizeof(struct report_msgbuf_s), IPC_CREAT | 0600);
-  fprintf(stderr, "Created shmem for rep: %d\n", shm_rep);
-  sem_init(shm_rep_sem, 1, 0);
+  stat_shmptr_conv = shmat(shm_stat, 0, 0);
+  stat_shmptr_rep = shmat(shm_rep, 0, 0);
+
   pid = fork();
   if (!pid)
       start_report();
-
-  stat_shmptr_conv = shmat(shm_stat, 0, 0);
-  stat_shmptr_rep = shmat(shm_rep, 0, 0);
+    
   while(1)
     {
-      P(shm_stat_sem);
+      P(shm_stat_sem_rd);
+      P(shm_stat_sem_ac);
+      P(shm_rep_sem_wr);
+      P(shm_rep_sem_ac);
 
-      num = *stat_shmptr_conv;
+      num = stat_shmptr_conv[rdpos_stat_buf];
+      rdpos_stat_buf = (rdpos_stat_buf + 1) % BUF_SIZE;
 
       ++count;
       sum += num;
       if (num < min_num)
 	min_num = num;
+
       if (num > max_num)
 	max_num = num;
       mean_num = ((double) sum) / ((double) count);
@@ -222,8 +277,12 @@ void start_statistics(void)
       buf.max_num = max_num;
       buf.mean_num = mean_num;
 
-      *stat_shmptr_rep = buf;
-      V(shm_rep_sem);
+      stat_shmptr_rep[wrpos_rep_buf] = buf;
+      wrpos_rep_buf = (wrpos_rep_buf + 1) % BUF_SIZE;
+      V(shm_stat_sem_ac);
+      V(shm_rep_sem_ac);
+      V(shm_stat_sem_wr);
+      V(shm_rep_sem_rd);
     }
 }
 
@@ -254,9 +313,16 @@ void main_sighandler(int sig)
   shmctl(shm_log, IPC_RMID, 0);
   shmctl(shm_stat, IPC_RMID, 0);
   shmctl(shm_rep, IPC_RMID, 0);
-  sem_destroy(shm_log_sem);
-  sem_destroy(shm_stat_sem);
-  sem_destroy(shm_rep_sem);
+
+  sem_destroy(shm_log_sem_rd);
+  sem_destroy(shm_stat_sem_rd);
+  sem_destroy(shm_rep_sem_rd);
+  sem_destroy(shm_log_sem_wr);
+  sem_destroy(shm_stat_sem_wr);
+  sem_destroy(shm_rep_sem_wr);
+  sem_destroy(shm_log_sem_ac);
+  sem_destroy(shm_stat_sem_ac);
+  sem_destroy(shm_rep_sem_ac);
 
   free(app_name);
   exit(0);

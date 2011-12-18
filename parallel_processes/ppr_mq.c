@@ -86,10 +86,11 @@ main(int argc, char *argv[])
 
 void start_conv(void)
 {
-  int num;
+  int num, i;
   struct conv_msgbuf buf;
-
-  while(1)
+  
+  for(i = 0; i < 1000000; ++i)
+//  while(1)
     {
       num = rand() % 256;
 

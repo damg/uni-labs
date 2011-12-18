@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-Wall -O2
 LDFLAGS=-pthread
 
 TARGETS=ppr_mq ppr_pipe ppr_shmem
@@ -21,4 +21,4 @@ ppr_shmem: ppr_shmem.o
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	$(RM) -fv $(OBJECTS) $(TARGETS)
+	$(RM) -fv $(TARGETS) *.o
