@@ -15,3 +15,4 @@ parallel_processes/Makefile
 parallel_processes/ppr_mq
 parallel_processes/ppr_pipe
 parallel_processes/ppr_shmem
+*.beam
