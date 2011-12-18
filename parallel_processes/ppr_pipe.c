@@ -85,7 +85,6 @@ void start_conv(void)
   while(1)
     {
       num = rand() % 256;
-      usleep(1000000);
 
       write(pipe_conv_to_log[1], &num, sizeof(num));
       write(pipe_conv_to_statistics[1], &num, sizeof(num));

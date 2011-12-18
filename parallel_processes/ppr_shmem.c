@@ -97,19 +97,19 @@ main(int argc, char *argv[])
 void start_conv(void)
 {
   int num;
-  int* shmptr;
+  static int *conv_shmptr_log, *conv_shmptr_stat;
+
+  conv_shmptr_log = shmat(shm_log, 0, 0);
+  conv_shmptr_stat = shmat(shm_stat, 0, 0);
 
   while(1)
     {
-      usleep(1000000);
       num = rand() % 256;
 
-      shmptr = shmat(shm_log, 0, 0);
-      *shmptr = num;
+      *conv_shmptr_log = num;
       V(shm_log_sem);
 
-      shmptr = shmat(shm_stat, 0, 0);
-      *shmptr = num;
+      *conv_shmptr_stat = num;
       V(shm_stat_sem);
     }
 }
@@ -119,7 +119,7 @@ void start_log(void)
   char *log_file_path;
   static FILE *log_f;
   int num;
-  int* shmptr;
+  static int* log_shmptr;
   size_t log_file_path_len;
 
   log_file_path_len = strlen(app_name) + 9 + 1;
@@ -130,13 +130,14 @@ void start_log(void)
   log_f = fopen(log_file_path, "w");
   free(log_file_path);
 
+  log_shmptr = shmat(shm_log, 0, 0);
   signal(SIGINT, log_sighandler);
 
   while(1)
     {
       P(shm_log_sem);
-      shmptr = shmat(shm_log, 0, 0);
-      num = *shmptr;
+      
+      num = *log_shmptr;
       fprintf(log_f, "[%ld] %d\n", time(0), num);
       fflush(log_f);
     }
@@ -147,7 +148,7 @@ void start_report(void)
   size_t report_file_path_len;
   char *report_file_path;
   static FILE *report_f;
-  struct report_msgbuf_s *shmptr;
+  static struct report_msgbuf_s *rep_shmptr;
 
   int min_num, max_num;
   double mean_num;
@@ -160,15 +161,16 @@ void start_report(void)
   report_f = fopen(report_file_path, "w");
   free(report_file_path);
 
+  rep_shmptr = shmat(shm_rep, 0, 0);
   signal(SIGINT, report_sighandler);
 
   while(1)
     {
       P(shm_rep_sem);
-      shmptr = shmat(shm_rep, 0, 0);
-      min_num = shmptr->min_num;
-      max_num = shmptr->max_num;
-      mean_num = shmptr->mean_num;
+      
+      min_num = rep_shmptr->min_num;
+      max_num = rep_shmptr->max_num;
+      mean_num = rep_shmptr->mean_num;
 
       fprintf(report_f, "[%ld] %i %i %f\n", time(0), min_num, max_num, mean_num);
       fflush(report_f);
@@ -178,8 +180,9 @@ void start_report(void)
 void start_statistics(void)
 {
   pid_t pid;
-  int num, *shmiptr;
-  struct report_msgbuf_s *shmptr;
+  int num;
+  static int *stat_shmptr_conv;
+  static struct report_msgbuf_s *stat_shmptr_rep;
   struct report_msgbuf_s buf;
 
   int min_num, max_num;
@@ -199,11 +202,13 @@ void start_statistics(void)
   if (!pid)
       start_report();
 
+  stat_shmptr_conv = shmat(shm_stat, 0, 0);
+  stat_shmptr_rep = shmat(shm_rep, 0, 0);
   while(1)
     {
       P(shm_stat_sem);
-      shmiptr = shmat(shm_stat, 0, 0);
-      num = *shmiptr;
+
+      num = *stat_shmptr_conv;
 
       ++count;
       sum += num;
@@ -217,8 +222,7 @@ void start_statistics(void)
       buf.max_num = max_num;
       buf.mean_num = mean_num;
 
-      shmptr = shmat(shm_rep, 0, 0);
-      *shmptr = buf;
+      *stat_shmptr_rep = buf;
       V(shm_rep_sem);
     }
 }
@@ -237,6 +241,16 @@ void report_sighandler(int sig)
 
 void main_sighandler(int sig)
 {
+  static int *conv_shmptr_log, *conv_shmptr_stat, *log_shmptr, *stat_shmptr_conv;
+  static struct report_msgbuf_s *rep_shmptr, *stat_shmptr_rep;
+  
+  shmdt(conv_shmptr_log);
+  shmdt(conv_shmptr_stat);
+  shmdt(log_shmptr);
+  shmdt(rep_shmptr);
+  shmdt(stat_shmptr_conv);
+  shmdt(stat_shmptr_rep);
+
   shmctl(shm_log, IPC_RMID, 0);
   shmctl(shm_stat, IPC_RMID, 0);
   shmctl(shm_rep, IPC_RMID, 0);

@@ -91,7 +91,6 @@ void start_conv(void)
 
   while(1)
     {
-      usleep(1000000);
       num = rand() % 256;
 
       buf.mtype = 1;
